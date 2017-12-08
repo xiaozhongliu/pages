@@ -10,6 +10,6 @@ key: page-about
 
 Just say something about yourself. :+1:
 
-```javascript
-  console.log('hello, world')
-```
+{% highlight javascript %}
+(() => console.log('hello, world!'))();
+{% endhighlight %}
