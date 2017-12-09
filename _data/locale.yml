@@ -47,12 +47,6 @@ STATISTICS:
   zh-Hans: 共计 [POST_COUNT] 篇文章, [PAGE_COUNT] 页。
   zh-Hant: 共計 [POST_COUNT] 篇文章, [PAGE_COUNT] 頁。
 
-LICENSE_ANNOUNCE:
-  en:      This work is licensed under a [LICENSE] license.
-  zh:      本文遵守 [LICENSE] 许可协议。
-  zh-Hans: 本文遵守 [LICENSE] 许可协议。
-  zh-Hant: 本文遵守 [LICENSE] 許可協議。
-
 LICENSE_INTRO:
   en:
   zh:      欢迎转载，转载需注明出处，且禁止用于商业目的。

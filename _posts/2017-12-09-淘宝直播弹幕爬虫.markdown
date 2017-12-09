@@ -1,0 +1,134 @@
+---
+layout: post
+title: 淘宝直播弹幕爬虫
+key: 20171209
+tags: crawler node.js
+---
+
+## 背景说明
+公司有通过淘宝直播间短链接来爬取直播弹幕的需求, 奈何即便google上面也仅找到一个相关的话题, 还没有答案. 所以只能自食其力了.
+
+爬虫的github地址在文末, 我们先看一下爬虫的最终效果:
+![](/assets/posts/20171209/overview.png)
+
+下面我们来抽丝剥茧, 重现一下调研过程.
+
+## 页面分析
+直播间地址在分享直播时可以拿到:
+![](/assets/posts/20171209/address.png)
+
+对于弹幕一般不是websocket就是socket. 我们打开dev tools过滤ws的请求即可看到websocket地址:
+![](/assets/posts/20171209/wsurl.png)
+
+> 提一下斗鱼: 它走的是flash的socket, 你就算打开dev tools也是懵逼, 好在斗鱼官方直接开放了socket的API.
+
+我们继续查看收到的消息, 发现消息的压缩类型compressType有两种: COMMON和GZIP. data的值肯定就是目标消息了, 看起来像经过了base64编码, 解密过程后面再说.
+![](/assets/posts/20171209/frames.png)
+
+现在我们首先要解决的问题是如何拿到websocket地址. 分析一下html source, 发现可以通过其中不变的部分查找到脚本:
+![](/assets/posts/20171209/source.png)
+然鹅, 拿到这块整个的脚本格式化之后发现, 原始代码明显是模块化开发的, 经过了打包压缩. 所以我们只能分析模块内一小块代码, 这是没有意义的.
+
+但是我们可以观察到不同的直播间websocket地址唯一不同的只有token, 所以我们可以想办法拿到token. 当然这是很恶心的环节, 完全没有头绪, 想到的各种可能性都失败了. 后面像无头苍蝇一样看页面发起的请求, 竟然给找到了...  
+token是通过api请求获取的, api地址是: http://h5api.m.taobao.com/h5/mtop.mediaplatform.live.encryption/1.0/
+![](/assets/posts/20171209/api.png)
+
+好了那websocket地址的问题解决了, 我们开始写爬虫吧.
+
+## 编写爬虫
+看看api的query string那一堆动态参数, 普通爬虫就别想了, 我们祭出神器: [puppeteer][puppeteer].
+
+puppeteer是谷歌推出的开放Node API的无头浏览器, 理论上可以可编程化地控制浏览器的各种行为, 对于我们的场景来说就是:
+直播页面加载完之后, 拦截获取websocket token的api请求, 解析结果拿到token. 这部分的代码如下:
+
+```js
+    const browser = await puppeteer.launch()
+    const page = (await browser.pages())[0]
+    await page.setRequestInterception(true)
+    const api = 'http://h5api.m.taobao.com/h5/mtop.mediaplatform.live.encryption/1.0/'
+    const { url } = message
+
+    // intercept request obtaining the web socket token
+    page.on('request', req => {
+        if (req.url.includes(api)) {
+            console.log(`[${url}] getting token`)
+        }
+        req.continue()
+    })
+    page.on('response', async res => {
+        if (!res.url.includes(api)) return
+
+        const data = await res.text()
+        const token = data.match(/"result":"(.*?)"/)[1]
+        const url = `ws://acs.m.taobao.com/accs/auth?token=${token}`
+    })
+
+    // open the taobao live page
+    await page.goto(url, { timeout: 0 })
+    console.log(`[${url}] page loaded`)
+```
+
+> 这里有个性能优化的小技巧. puppeteer官方示例中获取page实例会打开一个新页面: `const page = await browser.newPage()`, 实际上浏览器启动本来就默认有个about:blank页面打开, 我们的代码中直接是获取这个打开的实例来跳转直播页面, 这样就可以少一个进程.  
+可以ps ax|grep puppeteer观察启动的进程数来进行对比, 默认有两个主进程, 剩余的都是页面进程.
+
+获取到websocket地址就可以建立连接拉取消息了:
+
+```js
+    const url = `ws://acs.m.taobao.com/accs/auth?token=${token}`
+    const ws = new WebSocket(url)
+
+    ws.on('open', () => {
+        console.log(`\nOPEN:  ${url}\n`)
+    })
+    ws.on('close', () => {
+        console.log('DISCONN')
+    })
+    ws.on('message', msg => {
+        console.log(msg)
+    })
+```
+![](/assets/posts/20171209/rawmsgs.png)
+
+## 消息解密
+现在我们能持续拉取消息了, 这样会方便分析. 前面我们分析页面的时候发现compressType有两种: COMMON和GZIP. 经过尝试, COMMON的可以直接得到明文, 而GZIP的需要再经过一次gunzip解码. 解码结果大致如下, 里面已经可以看到昵称和弹幕内容了:
+![](/assets/posts/20171209/plainmsg.png)
+
+然鹅, 一切才刚刚开始...内容里面是有乱码的, 基于这样的内容做正则匹配无果. 如果尝试直接保存`buffer`或者`buffer.toString()`到文件会发现文件根本打不开, 内容是无法解析的:
+![](/assets/posts/20171209/invalid.png)
+
+没办法, 我们只能分析原始buffer array的utf8编码了. 这里开了脑洞, 直接将buffer array做join得到的string拿来分析 (分析代码见analyze.js文件):
+![](/assets/posts/20171209/analyze.png)
+
+几个样本的分析结果如下, 其中不变的部分做了高亮:
+![](/assets/posts/20171209/rule.png)
+
+> 这些值可能是由有效字符编码按一定规则换算过来, 但谁又能猜得到呢, 也没必要.
+
+这样我们就可以通过一个正则表达式解析出nick和barrage了:
+
+```js
+/.*,[0-9]+,0,18,[0-9]+,(.*?),32,[0-9]+,[0-9]+,[0-9]+,[0-9]+,[0-9]+,44,50,2,116,98,[0-9]+,0,10,[0-9]+,(.*?),18,20,10,12/
+```
+
+当然这个pattern同样能匹配到关注主播的弹幕, 这不是我们想要的. 我们可以通过一串确定的buffer字符串提前过滤掉这种消息:
+
+```js
+const followedPattern = '226,129,130,226,136,176,226,143,135,102,111,108,108,111,119'
+```
+至此我们已经可以解析出干干净净的昵称+弹幕了.
+
+当然可能还存在一个问题, 是关于上面分析结果表里的`barrage前`, 有连续的5位固定不变, 实际上刚开始是连同前面一位共6位不变的, 结果过了一天之后前面那位从130变到了131, 而再往前的几位变化频率则特别高. 所以我怀疑这些值有可能是跟当前时间有关.
+可能不确定的一段时间之后这5位固定值也会变掉吧, 到时正则就得调整了, 但应该可以正常运行很久了. 如有哪些同仁感兴趣, 可以找找规律.
+
+## 进程维护
+实际使用时流程大致应该是这样的: 收到请求之后主进程fork一个爬虫子进程来获取websocket url, 子进程返回结果给主进程, 在使用方建立websocket连接(抢过连接)之后, 子进程便可自杀释放资源, 自杀的同时`browser.close()`杀死puppeteer相关进程.  
+之所以这样是因为测试下来: websocket断开连接不久token会失效.
+
+## Github仓库
+记得star啊😉  
+[https://github.com/xiaozhongliu/taobao-live-crawler](https://github.com/xiaozhongliu/taobao-live-crawler)
+
+
+
+
+[puppeteer]: https://github.com/GoogleChrome/puppeteer
