@@ -49,6 +49,15 @@
         </div>
       </li>
     {% endif %}
+    {% if site.author.juejin %}
+      <li title="{{ __return | replace: '[NAME]', 'Juejin' }}">
+        <div class="round-button juejin">
+          <a itemprop="sameAs" href="https://juejin.im/user/{{ site.author.juejin }}" target="_blank">
+            <div class="icon">{% include icon/social/juejin.svg %}</div>
+          </a>
+        </div>
+      </li>
+    {% endif %}
     {% if site.author.linkedin %}
       <li title="{{ __return | replace: '[NAME]', 'Linkedin' }}">
         <div class="round-button linkedin">
