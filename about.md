@@ -8,7 +8,7 @@ titles:
 key: page-about
 ---
 
-Just say something about yourself. :+1:
+I'll write something about myself, but not now.
 
 ```javascript
   console.log('hello, world')
