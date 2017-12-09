@@ -13,7 +13,7 @@
 
 ## Base settings ##
 # url:  #the base hostname & protocol for your site e.g. https://www.someone.com
-baseurl: /
+baseurl: 
 title: Xiaozhong's Blog
 description: > #this means to ignore newlines until "nav_lists:"
   Xiaozhong's Blog
@@ -32,6 +32,7 @@ nav_lists:
 #   rss:  /feed.xml
 
 ## GitHub repository (if the site is hosted by GitHub) ##
+github: [metadata]
 # repository:  #e.g. someone/someone.github.io
 # repository_tree:  #e.g. master
 
@@ -54,7 +55,7 @@ author:
 
 ## Comment system (Disqus) ##
 disqus:
-  # shortname:  #the Disqus shortname for the site
+  shortname:  xiaozhongliu
 
 ## Google Analytics ##
 # ga_tracking_id:  #Google analytics id for the site

@@ -11,5 +11,5 @@ key: page-about
 I'll write something about myself, but not now.
 
 ```javascript
-  console.log('hello, world')
+  console.log('hello world')
 ```
