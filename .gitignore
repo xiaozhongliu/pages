@@ -131,6 +131,7 @@ typings/
 *.rbc
 /.config
 /coverage/
+/dist/
 /InstalledFiles
 /pkg/
 /spec/reports/
