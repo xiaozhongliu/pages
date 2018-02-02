@@ -3,7 +3,7 @@ const imagemin = require('imagemin')
 const imageminJpegtran = require('imagemin-jpegtran')
 const imageminPngquant = require('imagemin-pngquant')
 
-imagemin(['assets/posts/20171209/*.{jpg,png}'], 'dist', {
+imagemin(['assets/posts/20180202/*.{jpg,png}'], 'dist', {
 	plugins: [
 		imageminJpegtran(),
 		imageminPngquant({quality: '65-75'})
