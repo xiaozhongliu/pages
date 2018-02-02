@@ -31,6 +31,9 @@
   .github {
     @include link-background-colors ( $github-color, lighten($github-color, 30%))
   }
+  .juejin {
+    @include link-background-colors ( $juejin-color, lighten($juejin-color, 30%))
+  }
   .linkedin {
     @include link-background-colors ( $linkedin-color, darken($linkedin-color, 20%))
   }
