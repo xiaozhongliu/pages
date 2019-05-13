@@ -19,7 +19,7 @@ fong是一个完全用typescript编写的node gRPC框架, 可以基于它很方�
 目前能找到的开源node gRPC框架很少, 跟其中star稍微多点的mali简单对比一下:  
 
 |对比方面       |mali       |fong        |
-|:---          |:---       |:---        |
+|---           |---        |---         |
 |项目风格约定    |           |√           |
 |定义查看跳转    |definition |源代码       |
 |编写语言       |javascript |typescript  |
@@ -68,9 +68,9 @@ root
 ├── config
 |  ├── config.default.ts
 |  ├── config.dev.ts
-|  └── config.test.ts
+|  ├── config.test.ts
 |  ├── config.stage.ts
-|  ├── config.prod.ts
+|  └── config.prod.ts
 ├── midware
 |  └── logger.ts
 ├── controller
