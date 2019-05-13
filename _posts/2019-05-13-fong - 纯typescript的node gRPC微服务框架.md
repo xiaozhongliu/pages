@@ -11,29 +11,29 @@ github: [https://github.com/xiaozhongliu/fong](https://github.com/xiaozhongliu/f
 fong是一个完全用typescript编写的node gRPC框架, 可以基于它很方便地编写gRPC微服务应用. 一般是用来编写service层应用, 以供bff层或前端层等调用.  
 
 # 优点
-1.纯typescript编写, typescript的好处不用多说了. 这个框架还做到了写框架和用户使用框架包括查看定义等都是ts源码, 用户使用框架完全感受不到type definition文件.  
+1.纯typescript编写, typescript的好处不用多说了. 并且用户使用这个框架框架时, 查看定义都是ts源码, 用户使用框架感受不到type definition文件.  
 2.效仿[egg.js](https://eggjs.org/zh-cn/intro/index.html)的『约定优于配置』原则, 按照统一的约定进行应用开发, 项目风格一致, 开发模式简单, 上手速度极快. 如果用过egg, 就会发现一切都是那么熟悉.
 
 # 对比
 
 目前能找到的开源node gRPC框架很少, 跟其中star稍微多点的mali简单对比一下:  
 
-|对比方面      |mali       |fong       |
-|:---         |:---       |:---       |
-|项目风格约定   |           |√          |
-|定义查看跳转   |definition |源代码      |
-|编写语言      |javascript |typescript |
-|proto文件加载 |仅能加载一个 |按目录加载多个|
-|代码生成      |           |√          |
-|中间件        |√          |√          |
-|配置          |           |√          |
-|日志          |           |√          |
-|controller加载|           |√          |
+|对比方面       |mali       |fong        |
+|:---          |:---       |:---        |
+|项目风格约定    |           |√           |
+|定义查看跳转    |definition |源代码       |
+|编写语言       |javascript |typescript  |
+|proto文件加载  |仅能加载一个 |按目录加载多个|
+|代码生成       |           |√           |
+|中间件         |√          |√           |
+|配置          |           |√           |
+|日志          |           |√           |
+|controller加载|           |√           |
 |service加载   |           |即将支持, 目前可以自己import即可 |
 |util加载      |           |即将支持, 目前可以自己import即可 |
-|入参校验       |           |即将支持    |
-|插件机制       |           |打算支持    |
-|更多功能       |           |TBD        |
+|入参校验       |           |即将支持     |
+|插件机制       |           |打算支持     |
+|更多功能       |           |TBD         |
 
 # 示例
 
@@ -215,7 +215,7 @@ util文件放到util文件夹即可自动加载. 通过ctx.util.\<function>使�
 ### 入参校验
 把在[这里用的参数校验中间件](https://github.com/xiaozhongliu/egg-api-seed/blob/master/app/request/home/IndexRequest.ts)搬过来, 用class-validator和class-transformer实现校验, 支持自动生成.
 
-应用内的request model
+应用内的request model将会类似:
 
 ```typescript
 import { IsOptional, Length, Min, Max, IsBoolean } from 'class-validator'
@@ -236,7 +236,7 @@ export default class IndexRequest {
 }
 ```
 
-框架内的validate midware
+框架内的validate midware将会类似:
 
 ```typescript
 import { Context } from 'egg'
